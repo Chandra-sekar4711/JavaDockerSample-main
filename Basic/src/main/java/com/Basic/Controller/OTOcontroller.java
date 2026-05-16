@@ -36,7 +36,7 @@ public class OTOcontroller {
 	@GetMapping("/Testapi1depcheck")
 	public ResponseEntity<String> Testapi1depcheck()
 	{
-		return ResponseEntity.status(HttpStatus.OK).body("Triggerred");
+		return ResponseEntity.status(HttpStatus.OK).body("Triggerred new workfloww");
 	}
 	
 	
