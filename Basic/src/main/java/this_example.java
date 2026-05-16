@@ -13,6 +13,6 @@ public class this_example {
 	
 	public void m1()
 	{
-		System.out.println("m1");
+		System.out.println("This is new"+"m1");
 	}
 }
