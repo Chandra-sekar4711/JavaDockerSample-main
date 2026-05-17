@@ -16,8 +16,8 @@ public class AwsSecretsLoader {
     private static final String DB_SECRET_NAME = System.getenv("DB_SECRET_NAME");
     private static final String S3_SECRET_NAME = System.getenv("S3_SECRET_NAME");
 
-    private static final String ACCESS_KEY = System.getenv("AWS_ACCESS_KEY");
-    private static final String SECRET_KEY = System.getenv("AWS_SECRET_KEY");
+    private static final String ACCESS_KEY = System.getenv("AWS_ACCESS_KEY_ID");
+    private static final String SECRET_KEY = System.getenv("AWS_SECRET_ACCESS_KEY");
 
     public static void loadSecrets() {
 
@@ -96,8 +96,8 @@ public class AwsSecretsLoader {
 
             System.setProperty("AWS_S3_BUCKET_NAME", bucketName);
             System.setProperty("AWS_REGION", region);
-            System.setProperty("ACCESS_KEY", access_key);
-            System.setProperty("SECRET_KEY", secret_key);
+            System.setProperty("AWS_ACCESS_KEY_ID", access_key);
+            System.setProperty("AWS_SECRET_ACCESS_KEY", secret_key);
 
             // =========================
             // DONE
