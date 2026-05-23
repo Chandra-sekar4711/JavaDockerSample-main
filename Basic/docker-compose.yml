@@ -1,9 +1,9 @@
-version: "3.8"
-
 services:
   backend:
     image: chandrasekar1158/springboot_cicd_pipeline:latest
     container_name: springboot-backend-container
+    env_file:
+      - .env
     ports:
       - "8080:8080"
 
@@ -31,10 +31,12 @@ services:
       # =========================
       # AWS S3
       # =========================
+      DB_SECRET_NAME: ${DB_SECRET_NAME}
+      S3_SECRET_NAME: ${S3_SECRET_NAME}
       AWS_S3_BUCKET_NAME: ${AWS_S3_BUCKET_NAME}
       AWS_REGION: ${AWS_REGION}
-      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
-      AWS_SECRET_KEY: ${AWS_SECRET_KEY}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID:-}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY:-}
 
       # =========================
       # SPRING
