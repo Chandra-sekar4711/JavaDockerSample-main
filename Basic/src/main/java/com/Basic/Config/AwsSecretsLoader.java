@@ -16,11 +16,12 @@ public class AwsSecretsLoader {
     private static final String DB_SECRET_NAME = System.getenv("DB_SECRET_NAME");
     private static final String S3_SECRET_NAME = System.getenv("S3_SECRET_NAME");
 
-    private static final String ACCESS_KEY = System.getenv("AWS_ACCESS_KEY_ID");
-    private static final String SECRET_KEY = System.getenv("AWS_SECRET_ACCESS_KEY");
+    private static final String ACCESS_KEY = System.getenv("AWS_ACCESS_KEY");
+    private static final String SECRET_KEY = System.getenv("AWS_SECRET_KEY");
 
     public static void loadSecrets() {
-
+        System.out.println("ACCESS_KEY = " + ACCESS_KEY);
+        System.out.println("REGION = " + REGION);
         try {
 
             AwsBasicCredentials awsCreds =
@@ -63,7 +64,7 @@ public class AwsSecretsLoader {
             }
 
             String dbUrl = "jdbc:mysql://" + host + ":" + port + "/" + db;
-
+            System.out.println("dbUrl----->"+" "+dbUrl);
             System.setProperty("DB_URL", dbUrl);
             System.setProperty("DB_USERNAME", username);
             System.setProperty("DB_PASSWORD", password);
