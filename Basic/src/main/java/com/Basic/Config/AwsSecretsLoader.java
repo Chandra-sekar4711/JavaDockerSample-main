@@ -2,9 +2,13 @@ package com.Basic.Config;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.AwsCredentialsProvider;
+import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.regions.providers.DefaultAwsRegionProviderChain;
 import software.amazon.awssdk.services.secretsmanager.SecretsManagerClient;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueRequest;
 import software.amazon.awssdk.services.secretsmanager.model.GetSecretValueResponse;
@@ -16,22 +20,17 @@ public class AwsSecretsLoader {
     private static final String DB_SECRET_NAME = System.getenv("DB_SECRET_NAME");
     private static final String S3_SECRET_NAME = System.getenv("S3_SECRET_NAME");
 
-    private static final String ACCESS_KEY = System.getenv("AWS_ACCESS_KEY");
-    private static final String SECRET_KEY = System.getenv("AWS_SECRET_KEY");
+    private static final String ACCESS_KEY = System.getenv("AWS_ACCESS_KEY_ID");
+    private static final String SECRET_KEY = System.getenv("AWS_SECRET_ACCESS_KEY");
 
     public static void loadSecrets() {
-        System.out.println("ACCESS_KEY = " + ACCESS_KEY);
-        System.out.println("REGION = " + REGION);
+        Region secretsRegion = resolveRegion();
+        System.out.println("REGION = " + secretsRegion.id());
         try {
 
-            AwsBasicCredentials awsCreds =
-                    AwsBasicCredentials.create(ACCESS_KEY, SECRET_KEY);
-
             SecretsManagerClient client = SecretsManagerClient.builder()
-                    .region(Region.of(REGION))
-                    .credentialsProvider(
-                            StaticCredentialsProvider.create(awsCreds)
-                    )
+                    .region(secretsRegion)
+                    .credentialsProvider(credentialsProvider())
                     .build();
 
             ObjectMapper mapper = new ObjectMapper();
@@ -88,8 +87,6 @@ public class AwsSecretsLoader {
 
             String bucketName = s3Json.path("AWS_S3_BUCKET_NAME").asText(null);
             String region = s3Json.path("AWS_REGION").asText(null);
-            String access_key = s3Json.path("ACCESS_KEY").asText(null);
-            String secret_key = s3Json.path("SECRET_KEY").asText(null);
 
             if (bucketName == null || region == null) {
                 throw new RuntimeException("Missing required S3 fields in secret JSON");
@@ -97,8 +94,6 @@ public class AwsSecretsLoader {
 
             System.setProperty("AWS_S3_BUCKET_NAME", bucketName);
             System.setProperty("AWS_REGION", region);
-            System.setProperty("AWS_ACCESS_KEY_ID", access_key);
-            System.setProperty("AWS_SECRET_ACCESS_KEY", secret_key);
 
             // =========================
             // DONE
@@ -112,5 +107,48 @@ public class AwsSecretsLoader {
         } catch (Exception e) {
             throw new RuntimeException("❌ Failed to load AWS Secrets", e);
         }
+    }
+
+    private static AwsCredentialsProvider credentialsProvider() {
+        String accessKey = firstNonBlank(
+                System.getenv("AWS_ACCESS_KEY_ID"),
+                ACCESS_KEY,
+                System.getProperty("aws.accessKeyId")
+        );
+        String secretKey = firstNonBlank(
+                System.getenv("AWS_SECRET_ACCESS_KEY"),
+                SECRET_KEY,
+                System.getProperty("aws.secretAccessKey")
+        );
+
+        if (accessKey != null && secretKey != null) {
+            AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKey, secretKey);
+            return StaticCredentialsProvider.create(credentials);
+        }
+
+        return DefaultCredentialsProvider.create();
+    }
+
+    private static Region resolveRegion() {
+        String region = firstNonBlank(
+                REGION,
+                System.getenv("AWS_DEFAULT_REGION"),
+                System.getProperty("aws.region")
+        );
+
+        if (region != null) {
+            return Region.of(region);
+        }
+
+        return DefaultAwsRegionProviderChain.builder().build().getRegion();
+    }
+
+    private static String firstNonBlank(String... values) {
+        for (String value : values) {
+            if (value != null && !value.isBlank()) {
+                return value;
+            }
+        }
+        return null;
     }
 }
