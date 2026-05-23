@@ -12,22 +12,19 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 public class S3Config {
 
-    @Value("${aws.region}")
-    private String region;
+    private static final String REGION = System.getenv("AWS_REGION");
 
-    @Value("${aws.access-key-id:}")
-    private String accessKeyId;
-
-    @Value("${aws.secret-access-key:}")
-    private String secretAccessKey;
+    private static final String ACCESS_KEY = System.getenv("AWS_ACCESS_KEY");
+    private static final String SECRET_KEY = System.getenv("AWS_SECRET_KEY");
 
     @Bean
     public S3Client s3Client() {
         // Uses EC2 IAM role automatically when deployed
         // For local testing, uses ~/.aws/credentials
-        AwsBasicCredentials credentials = AwsBasicCredentials.create(accessKeyId, secretAccessKey);
+
+        AwsBasicCredentials credentials = AwsBasicCredentials.create(ACCESS_KEY, SECRET_KEY);
         return S3Client.builder()
-                .region(Region.of(region))
+                .region(Region.of(REGION))
                 .credentialsProvider(StaticCredentialsProvider.create(credentials))
                 .build();
     }
